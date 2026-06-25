@@ -1,0 +1,49 @@
+# ── Python ─────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+
+# ── Virtual environment ─────────────────────────────
+venv/
+.venv/
+env/
+.env/
+
+# ── Secrets ─────────────────────────────────────────
+.env
+.env.*
+*.pem
+*.key
+# keep .env.example — shows structure without secrets
+!.env.example
+
+# ── Database / Redis ────────────────────────────────
+dump.rdb
+*.db
+*.sqlite3
+
+# ── Alembic ─────────────────────────────────────────
+# keep versions/ — migration history must be committed
+alembic/__pycache__/
+
+# ── Testing / Locust ────────────────────────────────
+.pytest_cache/
+htmlcov/
+.coverage
+locust_report*.csv
+nohup.out
+
+# ── Editor / OS ─────────────────────────────────────
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# ── Logs ────────────────────────────────────────────
+*.log
+logs/
