@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
 )
 
-from sqlalchemy.orm import DeclerativeBase
+from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
 # Create async engine
@@ -25,7 +25,7 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 # Base class
-class Base(DeclerativeBase):
+class Base(DeclarativeBase):
     pass
 
 async def get_db():
