@@ -8,6 +8,8 @@ from alembic import context
 from app.models import Base
 from app.config import settings
 
+# Convert async URL to sync for Alembic
+SYNC_URL = settings.MYSQL_URL.replace("mysql+aiomysql://", "mysql+pymysql://")
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -41,9 +43,9 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url", settings.MYSQL_URL)
+    
     context.configure(
-        url=url,
+        url=SYNC_URL,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -61,7 +63,7 @@ def run_migrations_online() -> None:
 
     """
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = settings.MYSQL_URL
+    configuration["sqlalchemy.url"] = SYNC_URL
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",
