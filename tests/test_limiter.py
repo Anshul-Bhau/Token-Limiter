@@ -14,7 +14,7 @@ async def client():
     ) as client:
         yield client
 
-
+    
 @pytest.mark.asyncio
 async def test_health(client):
     response = await client.get("/")

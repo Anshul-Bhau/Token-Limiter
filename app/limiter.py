@@ -1,7 +1,7 @@
 import time
 import uuid
 
-from app.redis_client import redis, LUA_SCRIPTS
+import app.redis_client as redis_client
 from app.config import settings
 
 async def get_client_config(client_key: str) -> dict:
@@ -9,7 +9,7 @@ async def get_client_config(client_key: str) -> dict:
     cache_key = f"config_cache:{client_key}"
     import json
 
-    cached = await redis.get(cache_key)
+    cached = await redis_client.redis.get(cache_key)
     if cached:
         return json.loads(cached)
     
@@ -22,7 +22,7 @@ async def get_client_config(client_key: str) -> dict:
         result = await session.execute(select(ClientConfig).where(ClientConfig.client_key == client_key))
     row = result.scalar_one_or_none()
 
-    if row:
+    if row is not None:
         config = {
             "max_tokens" : row.max_tokens,
             "refill_rate" : row.refill_rate,
@@ -30,14 +30,14 @@ async def get_client_config(client_key: str) -> dict:
             "algorithm" : row.algorithm,
         }
     else:
-        onfig = {
+        config = {
             "max_tokens" : settings.DEFAULT_MAX_TOKENS,
             "refill_rate" : settings.DEFAULT_REFILL_RATE,
             "window_size" : settings.DEFAULT_WINDOW_SIZE,
             "algorithm" : settings.DEFAULT_ALGORITHM,
         }
     
-    await redis.setex(cache_key, 
+    await redis_client.redis.setex(cache_key, 
                     settings.CONFIG_CACHE_TTL,
                     json.dumps(config))
     
@@ -52,8 +52,8 @@ async def check_rate_limit(client_key: str) -> tuple[bool, float]:
         last_refill_key = f"bucket:{client_key}:last_refill"
         now = time.time()
 
-        result = await redis.evalsha(
-            LUA_SCRIPTS["token_bucket"],
+        result = await redis_client.redis.evalsha(
+            redis_client.LUA_SCRIPTS["token_bucket"],
             2,
             token_keys,
             last_refill_key,
@@ -68,8 +68,8 @@ async def check_rate_limit(client_key: str) -> tuple[bool, float]:
         key = f"slidingwindow:{client_key}"
         now = time.time()
 
-        result = await redis.evalsha(
-            LUA_SCRIPTS["sliding_window"],
+        result = await redis_client.redis.evalsha(
+            redis_client.LUA_SCRIPTS["sliding_window"],
             1,
             key,
             str(now),
@@ -84,7 +84,7 @@ async def check_rate_limit(client_key: str) -> tuple[bool, float]:
     return allowed, remaining
 
 async def _increment_stats(client_key: str, allowed: bool):
-    pipe = redis.pipeline()
+    pipe = redis_client.redis.pipeline()
     pipe.incr(f"stats:{client_key}:total")
     if allowed:
         pipe.incr(f"stats{client_key}:allowed")

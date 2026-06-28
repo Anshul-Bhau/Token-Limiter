@@ -12,3 +12,6 @@ class RateLimiterUser(HttpUser):
     def check_rate(self):
         self.client.post("/check",
                         json={"client_key": self.client_key})
+        
+
+

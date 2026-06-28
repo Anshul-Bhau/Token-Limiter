@@ -14,8 +14,9 @@ async def init_redis():
     redis = await aioredis.from_url(
         settings.REDIS_URL,
         encoding="utf-8",
-        decode_response=True,
-        max_connections=50,
+        decode_responses=True,
+        max_connections=200,
+        protocol=2,
     )
     await load_lua_scripts()
 

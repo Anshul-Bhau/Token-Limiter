@@ -2,22 +2,27 @@
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from app.redis_client import get_redis
+import app.redis_client as redis_client
 import redis
 
 router = APIRouter()
 
 @router.get("/stats")
 async def stats():
-    r = get_redis()
+    r = redis_client.redis
+    keys = []
     cursor = 0
     while True:
-        cursor, keys = await redis.scan(
+        cursor, batch = await r.scan(
             cursor,
-            match="stats:*:total"
+            match="stats:*:total",
+            count=100,
         )
-    result = []
+        keys.extend(batch)
+        if cursor == 0:
+            break
 
+    result = []
     for key in keys:
         client_key = key.split(":")[1]
         total   = await r.get(f"stats:{client_key}:total")   or 0

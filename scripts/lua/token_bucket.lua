@@ -7,10 +7,10 @@ local refill_rate     = tonumber(ARGV[3])
 local tokens      = tonumber(redis.call("GET", tokens_key))
 local last_refill = tonumber(redis.call("GET", last_refill_key))
 
-if tokens == nil then
+if not tokens then
     tokens = max_tokens
 end
-if last_refill == nil then
+if not last_refill then
     last_refill = now
 end
 
@@ -23,13 +23,7 @@ if tokens >= 1.0 then
     allowed = 1
 end
 
-redis.call("SET", tokens_key,      tokens)
-redis.call("SET", last_refill_key, now)
-
--- Time required to completely refill the bucket
-local ttl = math.call(max_tokens/refill_rate) * 3
-
-redis.call("EXPIRE", tokens_key, ttl)
-redis.call("EXPIRE", last_refill_key, ttl)
+redis.call("SET", tokens_key,      tostring(tokens))
+redis.call("SET", last_refill_key, tostring(now))
 
 return { allowed, tostring(tokens) }
